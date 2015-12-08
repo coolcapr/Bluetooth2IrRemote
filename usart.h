@@ -22,18 +22,6 @@ typedef union
 }USARTbits_t;
 volatile USARTbits_t USARTbits @ &PORTC;
 
-//Structure for USART TX_IND and RX_IND bits on PORTE RE1 and RE2 respectively
-typedef union
-{
-    struct
-    {
-        unsigned    USART_TX_IND    :1; //RA0
-        unsigned    USART_RX_IND    :1; //RA1
-        unsigned    NOT_USED        :6; //RA2 - RA7
-    };
-}USART_INDbits_t;
-volatile USART_INDbits_t USART_INDbits @ &PORTA;
-
 //Enumeration defining constants for USART mode
 enum
 {
