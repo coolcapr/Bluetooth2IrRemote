@@ -38,6 +38,6 @@ void USART_init(uint8_t brg16_val, uint8_t brgh_val, uint8_t spbrg_val, uint8_t 
 void USART_putc(const uint8_t _char);
 void USART_puts(const uint8_t *data_ptr, uint8_t length);
 uint8_t USART_getc();
-bool USART_gets(uint8_t *buffer_ptr, uint8_t size);
+bool USART_gets(uint8_t *buffer_ptr, uint8_t length);
 
 #endif	/* USART_H */
