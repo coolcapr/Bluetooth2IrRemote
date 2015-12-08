@@ -35,6 +35,9 @@ enum
 
 //USART related functions
 void USART_init(uint8_t brg16_val, uint8_t brgh_val, uint8_t spbrg_val, uint8_t usart_mode);
-void USART_send_data(uint8_t *ptr_data_to_send, uint8_t data_length);
-void USART_receive_data(uint8_t *receive_buffer_ptr, uint8_t buffer_size);
+void USART_putc(const uint8_t _char);
+void USART_puts(const uint8_t *data_ptr, uint8_t length);
+uint8_t USART_getc();
+bool USART_gets(uint8_t *buffer_ptr, uint8_t size);
+
 #endif	/* USART_H */
