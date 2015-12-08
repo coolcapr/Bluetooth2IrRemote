@@ -10,6 +10,7 @@
 
 #include <xc.h>
 #include <stdint.h>
+#include <stdbool.h>
 #define _XTAL_FREQ 16000000
 
 void sys_init();
