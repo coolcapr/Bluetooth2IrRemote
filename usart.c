@@ -54,20 +54,12 @@ void USART_init(uint8_t brg16_val, uint8_t brgh_val, uint8_t spbrg_val, uint8_t 
     
     TRISC = ENABLE_UART; //Set bits TRISC6 and TRISC7 for UART to work as per spec
     
-    ANSELAbits.ANSA0 = CLEAR; //Set RA0(TX_ind) as digital pin
-    ANSELAbits.ANSA1 = CLEAR; //Set RA1(RX_ind) as digital pin
-    TRISAbits.TRISA0 = CLEAR; //Set RX_IND as output
-    TRISAbits.TRISA1 = SET; //Set RX_IND as input 
-    
     CREN = ON; //Switch UART receiver ON
     TXEN = ON; //Switch UART Transmitter ON
 }
 
 void USART_send_data(uint8_t *data_to_send_ptr, uint8_t length)
 {   
-    USART_INDbits.USART_TX_IND = ON;
-    __delay_us(20); //Wait for receiver to be ready
-    
     for(uint8_t tx_byte = 0; tx_byte < length; tx_byte++)
     {
         while(TXIF == CLEAR){;} //wait for TXREG to empty
@@ -76,15 +68,12 @@ void USART_send_data(uint8_t *data_to_send_ptr, uint8_t length)
 
     while(TXIF == CLEAR){;} //wait for TXREG to empty
     while(TRMT == CLEAR){;} //wait for TSR to empty
-    
-    USART_INDbits.USART_TX_IND = OFF;
 }
 
 void USART_receive_data(uint8_t *receive_buffer_ptr, uint8_t buffer_size)
 {
-    while(USART_INDbits.USART_RX_IND == ON)
-    {
-        if(PIR1bits.RCIF == SET)
+    
+        while(PIR1bits.RCIF == SET)
         {          
             *receive_buffer_ptr = RCREG;
             receive_buffer_ptr++;
@@ -100,5 +89,5 @@ void USART_receive_data(uint8_t *receive_buffer_ptr, uint8_t buffer_size)
                 break;
             }
         }
-    }
+    
 }
