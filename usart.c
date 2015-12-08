@@ -1,5 +1,12 @@
 #include "usart.h"
 
+#define TxBusy              (!TXSTAbits.TRMT)
+#define TxBufferFull        (!PIR1bits.TXIF)
+#define RxDataAvailable     (PIR1bits.RCIF)
+#define OverunError         (RCSTAbits.OERR)
+#define FramingError        (RCSTAbits.FERR)
+#define ContRxEnable        (RCSTAbits.SPEN)
+
 #define OFF             0
 #define ON              1
 #define CLEAR           0
@@ -58,36 +65,46 @@ void USART_init(uint8_t brg16_val, uint8_t brgh_val, uint8_t spbrg_val, uint8_t 
     TXEN = ON; //Switch UART Transmitter ON
 }
 
-void USART_send_data(uint8_t *data_to_send_ptr, uint8_t length)
-{   
-    for(uint8_t tx_byte = 0; tx_byte < length; tx_byte++)
-    {
-        while(TXIF == CLEAR){;} //wait for TXREG to empty
-        TXREG = data_to_send_ptr[tx_byte];
-    }
-
-    while(TXIF == CLEAR){;} //wait for TXREG to empty
-    while(TRMT == CLEAR){;} //wait for TSR to empty
+void USART_putc(const uint8_t _char)
+{
+    while(TxBufferFull){;} //wait for TXREG to empty
+    TXREG = _char;
+    while(TxBusy){;} //wait for TSR to empty
 }
 
-void USART_receive_data(uint8_t *receive_buffer_ptr, uint8_t buffer_size)
+void USART_puts(const uint8_t *data_ptr, uint8_t length)
 {
+    uint8_t index;
+    for(index = 0; index < length; index++)
+    {
+        while(TxBufferFull){;} //wait for TXREG to empty
+        TXREG = data_ptr[index];
+    }
     
-        while(PIR1bits.RCIF == SET)
-        {          
-            *receive_buffer_ptr = RCREG;
-            receive_buffer_ptr++;
-            buffer_size--;
-            
-            if(OERR == SET) //If overflow error,reset UART module
-            {
-                CREN = CLEAR;
-                CREN = SET;
-            }
+    while(TxBusy){;} //wait for TSR to empty
+}
 
-            if (buffer_size <= 0){ //received data greater than buffer, break out of receive loop
-                break;
-            }
+uint8_t USART_getc()
+{
+    return RCREG;
+}
+
+bool USART_gets(uint8_t *buffer_ptr, uint8_t length)
+{
+    uint8_t index;
+    for(index = 0; index < length; index++)
+    {
+        while(!RxDataAvailable){};
+        
+        if(FramingError || OverunError) //If overflow error,reset UART module
+        {
+            ContRxEnable = false; 
+            ContRxEnable = true;
+            return false;
         }
+        
+        buffer_ptr[index] = RCREG;
+    }
     
+    return true;
 }
