@@ -7,65 +7,17 @@
 #define FramingError        (RCSTAbits.FERR)
 #define ContRxEnable        (RCSTAbits.SPEN)
 
-#define OFF             0
-#define ON              1
-#define CLEAR           0
-#define SET             1
-#define ENABLE_UART     0xC0
-
-void USART_init(uint8_t brg16_val, uint8_t brgh_val, uint8_t spbrg_val, uint8_t usart_mode)
+void USART_init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_t txsta_val, const uint16_t spbrg_val)
 {
-    BAUDCONbits.BRG16 = brg16_val;
-    BRGH = brgh_val; //Baud-rate generator high speed mode
-    SPBRGL = spbrg_val; //Baud-rate generator period
+    BAUDCON = baudcon_val;
+    SPBRGL = (uint8_t)(0x00FF & spbrg_val);
+    SPBRGH = (uint8_t)(spbrg_val >> 8);
     
-    // Set USART mode
-    if (usart_mode == USART_ASYNC_EIGHT_BIT_MODE)
-    {
-        SYNC = CLEAR;
-        SPEN = SET;
-        TX9 = CLEAR;
-        RX9 = CLEAR;
-        ADDEN = CLEAR;
-    }else if (usart_mode == USART_ASYNC_NINE_BIT_MODE)
-    {
-        SYNC = CLEAR;
-        SPEN = SET;
-        TX9 = SET;
-        RX9 = SET;
-    }else if (usart_mode == USART_SYNC_EIGHT_BIT_MASTER_MODE)
-    {
-        SYNC = SET;
-        SPEN = SET;
-        TX9 = CLEAR;
-        RX9 = CLEAR;
-    }else if (usart_mode == USART_SYNC_EIGHT_BIT_SLAVE_MODE)
-    {
-        SYNC = SET;
-        SPEN = SET;
-        TX9 = CLEAR;
-        RX9 = CLEAR;
-    }else if (usart_mode == USART_SYNC_NINE_BIT_MASTER_MODE)
-    {
-        SYNC = SET;
-        SPEN = SET;
-        TX9 = SET;
-        RX9 = SET;
-    } else if (usart_mode == USART_SYNC_NINE_BIT_SLAVE_MODE)
-    {
-        SYNC = SET;
-        SPEN = SET;
-        TX9 = SET;
-        RX9 = SET;
-    }
-    
-    TRISC = ENABLE_UART; //Set bits TRISC6 and TRISC7 for UART to work as per spec
-    
-    CREN = ON; //Switch UART receiver ON
-    TXEN = ON; //Switch UART Transmitter ON
+    RCSTA = rcsta_val;
+    TXSTA = txsta_val;   
 }
 
-void USART_putc(const uint8_t _char)
+void USART_putch(const uint8_t _char)
 {
     while(TxBufferFull){;} //wait for TXREG to empty
     TXREG = _char;
@@ -84,7 +36,7 @@ void USART_puts(const uint8_t *data_ptr, uint8_t length)
     while(TxBusy){;} //wait for TSR to empty
 }
 
-uint8_t USART_getc()
+uint8_t USART_getch()
 {
     return RCREG;
 }
