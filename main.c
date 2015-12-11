@@ -24,33 +24,28 @@
 #pragma config BORV = LO        // Brown-out Reset Voltage Selection (Brown-out Reset Voltage (Vbor), low trip point selected.)
 #pragma config LVP = ON         // Low-Voltage Programming Enable (Low-voltage programming enabled)
 
-#define CLEAR               0
-#define SET                 1
-#define BRG16_VAL           0 //Use BRG 8 bit mode
-#define PRESCALER_VAL       1 //Use 1:1 prescaler
-#define BAUDRATE_VAL        51 //Configure baudrate to 19200bps
-#define BUFFER_SIZE         20 
+#define BAUDCON_VAL         (USART_BAUDCON_DEFAULT)
+#define RCSTA_VAL           (USART_SERIAL_PORT_ENABLE | USART_CONT_RX_ENABLE)
+#define TXSTA_VAL           (USART_TX_ENABLE | USART_HIGH_BAUDRATE)
+#define SPBRG_VAL           51 //baudrate: 19200bps
+#define IR_BUFFER_SIZE      20 
 
 void main(void)
 {
     //Initialize system wide parameters
-    sys_init();
+    SYS_Init();
        
     //Initialize UART mode: 16MHz Oscillator, Baud-rate 19200, Asynchronous Eight Bit Mode
-    USART_init(BRG16_VAL, PRESCALER_VAL, BAUDRATE_VAL, USART_ASYNC_EIGHT_BIT_MODE);
+    USART_Init(BAUDCON_VAL, RCSTA_VAL, TXSTA_VAL, SPBRG_VAL);
     
     //Initialize IR Transmitter
     IR_init(IR_FREQ_30_0);    
     
-    uint8_t IR_command_buffer[BUFFER_SIZE]; // command buffer, 20 byte long
+    uint8_t IR_command_buffer[IR_BUFFER_SIZE]; // command buffer, 20 byte long
     
     //Command receive loop
     while(1)
     {        
-        if(USART_INDbits.USART_RX_IND == SET)
-        {
-            USART_receive_data(IR_command_buffer, BUFFER_SIZE);
-            IR_send_command(IR_command_buffer);
-        }
+        
     }
 }
