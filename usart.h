@@ -19,13 +19,13 @@
 #define USART_OverunError                   (RCSTAbits.OERR)
 #define USART_TxBusy                        (!TXSTAbits.TRMT)
 
-//BAUDCON VALUES
+//BAUDCON values
 #define USART_BAUDCON_DEFAULT               0b00000000
 #define USART_CLK_IDLE_STATE_HIGH           0b00010000
 #define USART_BAUDRATE_GEN_16BIT            0b00001000
 #define USART_AUTO_BAUDRATE_DETECT_ENABLE   0b00000001
 
-//RCSTA VALUES
+//RCSTA values
 #define USART_RCSTA_DEFAULT                 0b00000000
 #define USART_SERIAL_PORT_ENABLE            0b10000000
 #define USART_RX_9BIT_MODE                  0b01000000
@@ -33,7 +33,7 @@
 #define USART_CONT_RX_ENABLE                0b00010000
 #define USART_ADDRESS_DETECT_ENABLE         0b00001000
 
-//TXSTA VALUES
+//TXSTA values
 #define USART_TXSTA_DEFAULT                 0b00000000
 #define USART_INTERNAL_CLK_GENERATION       0b10000000
 #define USART_TX_9BIT_MODE                  0b01000000
@@ -55,10 +55,11 @@
 #define USART_SendBreakCharacter()          (TXSTAbits.SENDB = 1)
 
 //USART related functions
-void USART_init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_t txsta_val, const uint16_t spbrg_val);
-void USART_putch(const uint8_t _char);
-void USART_puts(const uint8_t *data_ptr, uint8_t length);
-uint8_t USART_getch();
-bool USART_gets(uint8_t *buffer_ptr, uint8_t length);
-
+void USART_Init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_t txsta_val, const uint16_t spbrg_val);
+void USART_Putch(const uint8_t _char);
+void USART_Puts(const uint8_t *data_ptr, uint8_t length);
+uint8_t USART_Getch();
+bool USART_Gets(uint8_t *buffer_ptr, uint8_t length);
+void USART_Write(const uint8_t *data_ptr, const char delim);
+bool USART_Read(uint8_t *buffer_ptr, const char delim);
 #endif	/* USART_H */
