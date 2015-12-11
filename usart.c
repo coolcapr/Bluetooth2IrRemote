@@ -57,12 +57,29 @@ bool USART_Gets(uint8_t *buffer_ptr, uint8_t length)
 
 void USART_Write(const uint8_t *data_ptr, const char delim)
 {
-    
+    while(((char)*data_ptr) != delim)
+    {
+        while(USART_TxBufferFull){;} //wait for TXREG to empty
+        TXREG = *data_ptr++;
+    }
 }
 
 bool USART_Read(uint8_t *buffer_ptr, const char delim)
 {
+    do
+    {
+        while(!USART_RxDataAvailable){};
+        
+        if(USART_FramingError || USART_OverunError) //If overflow error,reset UART module
+        {
+            USART_ContRxDisable(); 
+            USART_ContRxEnable();
+            
+            return false;
+        }
+        
+        *buffer_ptr = RCREG;
+    }while(delim != ((char)*buffer_ptr++));
     
-    
-    
+    return true;
 }
