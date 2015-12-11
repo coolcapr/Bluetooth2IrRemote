@@ -1,12 +1,5 @@
 #include "usart.h"
 
-#define TxBusy              (!TXSTAbits.TRMT)
-#define TxBufferFull        (!PIR1bits.TXIF)
-#define RxDataAvailable     (PIR1bits.RCIF)
-#define OverunError         (RCSTAbits.OERR)
-#define FramingError        (RCSTAbits.FERR)
-#define ContRxEnable        (RCSTAbits.SPEN)
-
 void USART_init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_t txsta_val, const uint16_t spbrg_val)
 {
     BAUDCON = baudcon_val;
@@ -19,9 +12,9 @@ void USART_init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_
 
 void USART_putch(const uint8_t _char)
 {
-    while(TxBufferFull){;} //wait for TXREG to empty
+    while(USART_TxBufferFull){;} //wait for TXREG to empty
     TXREG = _char;
-    while(TxBusy){;} //wait for TSR to empty
+    while(USART_TxBusy){;} //wait for TSR to empty
 }
 
 void USART_puts(const uint8_t *data_ptr, uint8_t length)
@@ -29,11 +22,11 @@ void USART_puts(const uint8_t *data_ptr, uint8_t length)
     uint8_t index;
     for(index = 0; index < length; index++)
     {
-        while(TxBufferFull){;} //wait for TXREG to empty
+        while(USART_TxBufferFull){;} //wait for TXREG to empty
         TXREG = data_ptr[index];
     }
     
-    while(TxBusy){;} //wait for TSR to empty
+    while(USART_TxBusy){;} //wait for TSR to empty
 }
 
 uint8_t USART_getch()
@@ -46,12 +39,13 @@ bool USART_gets(uint8_t *buffer_ptr, uint8_t length)
     uint8_t index;
     for(index = 0; index < length; index++)
     {
-        while(!RxDataAvailable){};
+        while(!USART_RxDataAvailable){};
         
-        if(FramingError || OverunError) //If overflow error,reset UART module
+        if(USART_FramingError || USART_OverunError) //If overflow error,reset UART module
         {
-            ContRxEnable = false; 
-            ContRxEnable = true;
+            USART_ContRxDisable(); 
+            USART_ContRxEnable();
+            
             return false;
         }
         
