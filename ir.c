@@ -51,107 +51,107 @@ void IR_set_carrier(uint8_t IR_freq)
 { 
     if (IR_freq == IR_FREQ_30_0)
     {
-        PWM_init(132, 1, 266);
+        PWM_Init(132, 1, 266);
     }
     else if (IR_freq == IR_FREQ_30_5)
     {
-        PWM_init(130, 1, 262);
+        PWM_Init(130, 1, 262);
     } 
     else if (IR_freq == IR_FREQ_31_0)
     {
-        PWM_init(128, 1, 258);
+        PWM_Init(128, 1, 258);
     }
     else if (IR_freq == IR_FREQ_31_5)
     {
-        PWM_init(126, 1, 254);
+        PWM_Init(126, 1, 254);
     }
     else if (IR_freq == IR_FREQ_32_0)
     {
-        PWM_init(124, 1, 250);
+        PWM_Init(124, 1, 250);
     }
     else if (IR_freq == IR_FREQ_32_5)
     {
-        PWM_init(122, 1, 246);
+        PWM_Init(122, 1, 246);
     }
     else if (IR_freq == IR_FREQ_33_0)
     {
-        PWM_init(120, 1, 242);
+        PWM_Init(120, 1, 242);
     }
     else if (IR_freq == IR_FREQ_33_5)
     {
-        PWM_init(118, 1, 238);
+        PWM_Init(118, 1, 238);
     }
     else if (IR_freq == IR_FREQ_34_0)
     {
-        PWM_init(116, 1, 234);
+        PWM_Init(116, 1, 234);
     }
     else if (IR_freq == IR_FREQ_34_5)
     {
-        PWM_init(114, 1, 230);
+        PWM_Init(114, 1, 230);
     }
     else if (IR_freq == IR_FREQ_35_0)
     {
-        PWM_init(113, 1, 228);
+        PWM_Init(113, 1, 228);
     }
     else if (IR_freq == IR_FREQ_35_5)
     {
-        PWM_init(111, 1, 224);
+        PWM_Init(111, 1, 224);
     }
     else if (IR_freq == IR_FREQ_36_0)
     {
-        PWM_init(110, 1, 222);
+        PWM_Init(110, 1, 222);
     }
     else if (IR_freq == IR_FREQ_36_5)
     {
-        PWM_init(108, 1, 218);
+        PWM_Init(108, 1, 218);
     }
     else if (IR_freq == IR_FREQ_37_0)
     {
-        PWM_init(107, 1, 216);
+        PWM_Init(107, 1, 216);
     }
     else if (IR_freq == IR_FREQ_37_5)
     {
-        PWM_init(105, 1, 212);
+        PWM_Init(105, 1, 212);
     }
     else if (IR_freq == IR_FREQ_38_0)
     {
-        PWM_init(104, 1, 210);
+        PWM_Init(104, 1, 210);
     }
     else if (IR_freq == IR_FREQ_38_5)
     {
-        PWM_init(102, 1, 206);
+        PWM_Init(102, 1, 206);
     }
     else if (IR_freq == IR_FREQ_39_0)
     {
-        PWM_init(101, 1, 204);
+        PWM_Init(101, 1, 204);
     }
     else if (IR_freq == IR_FREQ_39_5)
     {
-        PWM_init(100, 1, 202);
+        PWM_Init(100, 1, 202);
     }
     else if (IR_freq == IR_FREQ_40_0)
     {
-        PWM_init(99, 1, 200);
+        PWM_Init(99, 1, 200);
     }
     else if (IR_freq == IR_FREQ_40_5)
     {
-        PWM_init(97, 1, 196);
+        PWM_Init(97, 1, 196);
     }
     else if (IR_freq == IR_FREQ_41_0)
     {
-        PWM_init(96, 1, 194);
+        PWM_Init(96, 1, 194);
     }
     else if (IR_freq == IR_FREQ_41_5)
     {
-        PWM_init(95, 1, 192);
+        PWM_Init(95, 1, 192);
     }
     else if (IR_freq == IR_FREQ_42_0)
     {
-        PWM_init(94, 1, 190);
+        PWM_Init(94, 1, 190);
     }
     else if (IR_freq == IR_FREQ_42_5)
     {
-        PWM_init(93, 1, 188);
+        PWM_Init(93, 1, 188);
     }
 }
 
@@ -190,9 +190,9 @@ void IR_send_command(uint8_t *command_frame_ptr)
 void IR_encode_pulse_position()
 {
     //Transmit Preamble
-    PWM_start();
+    PWM_Start();
     IR_delay(pre_amble_on_period);
-    PWM_stop();
+    PWM_Stop();
     IR_delay(pre_amble_off_period);
     
     //Transmit IR Frame
@@ -202,21 +202,21 @@ void IR_encode_pulse_position()
         {
             if(command_bit_length == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
-            //Transmit bit values starting from the least significant bit of each byte
+            //Transmit bit values Starting from the least significant bit of each byte
             uint8_t bit_val = (command_ptr[command_byte]) >> command_bit & 0x01;
 
             if (bit_val == SET) //If bit equals 1
             {
-                PWM_start();
+                PWM_Start();
                 IR_delay(gap_period);
-                PWM_stop();
+                PWM_Stop();
                 IR_delay(mark_period);
                 command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }else if(bit_val == CLEAR) //If bit equals 0
             {
-                PWM_start();
+                PWM_Start();
                 IR_delay(gap_period);
-                PWM_stop();
+                PWM_Stop();
                 IR_delay(space_period);
                 command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }   
@@ -224,18 +224,18 @@ void IR_encode_pulse_position()
     }
         
     //Transmit Post-amble
-    PWM_start();
+    PWM_Start();
     IR_delay(post_amble_period);
-    PWM_stop();
+    PWM_Stop();
     IR_delay(gap_period);
 }
 
 void IR_encode_pulse_length()
 {
     //Transmit Preamble
-    PWM_start();
+    PWM_Start();
     IR_delay(pre_amble_on_period);
-    PWM_stop();
+    PWM_Stop();
     IR_delay(pre_amble_off_period);
     
     //Transmit IR Frame
@@ -245,21 +245,21 @@ void IR_encode_pulse_length()
         {
             if(command_bit_length == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
-            //Transmit bit values starting from the least significant bit of each byte
+            //Transmit bit values Starting from the least significant bit of each byte
             uint8_t bit_val = (command_ptr[command_byte]) >> command_bit & 0x01;
 
             if (bit_val == SET) //If bit equals 1
             {
-                PWM_start();
+                PWM_Start();
                 IR_delay(mark_period);
-                PWM_stop();
+                PWM_Stop();
                 IR_delay(gap_period);
                 command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }else if (bit_val == CLEAR) //If bit equals 0
             {
-                PWM_start();
+                PWM_Start();
                 IR_delay(space_period);
-                PWM_stop();
+                PWM_Stop();
                 IR_delay(gap_period);
                 command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }   
@@ -267,18 +267,18 @@ void IR_encode_pulse_length()
     }
         
     //Transmit Post-amble
-    PWM_start();
+    PWM_Start();
     IR_delay(post_amble_period);
-    PWM_stop();
+    PWM_Stop();
     IR_delay(gap_period);
 }
 
 void IR_encode_bi_phase()
 {
     //Transmit Preamble
-    PWM_start();
+    PWM_Start();
     IR_delay(pre_amble_on_period);
-    PWM_stop();
+    PWM_Stop();
     IR_delay(pre_amble_off_period);
    
     //Transmit IR Frame
@@ -288,21 +288,21 @@ void IR_encode_bi_phase()
         {
             if(command_bit_length == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
-            //Transmit bit values starting from the least significant bit of each byte
+            //Transmit bit values Starting from the least significant bit of each byte
             uint8_t bit_val = (command_ptr[command_byte]) >> command_bit & 0x01;
 
             if (bit_val == SET) //If bit equals 1
             {
-                PWM_stop();
+                PWM_Stop();
                 IR_delay(mark_period);
-                PWM_start();
+                PWM_Start();
                 IR_delay(mark_period);
                 command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }else if (bit_val == CLEAR) //If bit equals 0
             {
-                PWM_start();
+                PWM_Start();
                 IR_delay(space_period);
-                PWM_stop();
+                PWM_Stop();
                 IR_delay(space_period);
                 command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }   
@@ -310,8 +310,8 @@ void IR_encode_bi_phase()
     }
     
     //Transmit Post-amble
-    PWM_start();
+    PWM_Start();
     IR_delay(post_amble_period);
-    PWM_stop();
+    PWM_Stop();
     IR_delay(gap_period);
 }
