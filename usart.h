@@ -16,7 +16,7 @@
 #define USART_RxDataAvailable               (PIR1bits.RCIF)
 #define USART_TxBufferFull                  (!PIR1bits.TXIF)
 #define USART_FramingError                  (RCSTAbits.FERR)
-#define USART_OverunError                   (RCSTAbits.OERR)
+#define USART_OverrunError                   (RCSTAbits.OERR)
 #define USART_TxBusy                        (!TXSTAbits.TRMT)
 
 //BAUDCON values
@@ -55,11 +55,11 @@
 #define USART_SendBreakCharacter()          (TXSTAbits.SENDB = 1)
 
 //USART related functions
-void USART_Init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_t txsta_val, const uint16_t spbrg_val);
-void USART_Putch(const uint8_t _char);
-void USART_Puts(const uint8_t *data_ptr, uint8_t length);
+void USART_Init(const uint8_t BaudconVal, const uint8_t RcstaVal, const uint8_t TxstaVal, const uint16_t SpbrgVal);
+void USART_Putch(const uint8_t _Char);
+void USART_Puts(const uint8_t *DataPtr, uint8_t Length);
 uint8_t USART_Getch();
-bool USART_Gets(uint8_t *buffer_ptr, uint8_t length);
-void USART_Write(const uint8_t *data_ptr, const char delim);
-bool USART_Read(uint8_t *buffer_ptr, const char delim);
+bool USART_Gets(uint8_t *BufferPtr, uint8_t Length);
+void USART_Write(const uint8_t *DataPtr, const char Delim);
+bool USART_Read(uint8_t *BufferPtr, const char Delim);
 #endif	/* USART_H */

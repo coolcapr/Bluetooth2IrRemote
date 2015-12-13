@@ -69,7 +69,7 @@ bool USART_Gets(uint8_t *BufferPtr, uint8_t Length)
         }
         RemoveTimeout();  
         
-        if(USART_FramingError || USART_OverunError) //If overflow error,reset UART module
+        if(USART_FramingError || USART_OverrunError) //if Overrun error or Framing error,reset UART module
         {
             USART_ContRxDisable(); 
             USART_ContRxEnable();
@@ -83,16 +83,16 @@ bool USART_Gets(uint8_t *BufferPtr, uint8_t Length)
     return true;
 }
 
-void USART_Write(const uint8_t *DataPtr, const char delim)
+void USART_Write(const uint8_t *DataPtr, const char Delim)
 {
-    while(((char)*DataPtr) != delim)
+    while(((char)*DataPtr) != Delim)
     {
         while(USART_TxBufferFull){;} //wait for TXREG to empty
         TXREG = *DataPtr++;
     }
 }
 
-bool USART_Read(uint8_t *BufferPtr, const char delim)
+bool USART_Read(uint8_t *BufferPtr, const char Delim)
 {
     do
     {
@@ -108,7 +108,7 @@ bool USART_Read(uint8_t *BufferPtr, const char delim)
         RemoveTimeout(); 
         
         
-        if(USART_FramingError || USART_OverunError) //If overflow error,reset UART module
+        if(USART_FramingError || USART_OverrunError) //If overflow error,reset UART module
         {
             USART_ContRxDisable(); 
             USART_ContRxEnable();
@@ -117,7 +117,7 @@ bool USART_Read(uint8_t *BufferPtr, const char delim)
         }
         
         *BufferPtr = RCREG;
-    }while(delim != ((char)*BufferPtr++));
+    }while(Delim != ((char)*BufferPtr++));
     
     return true;
 }
