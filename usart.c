@@ -3,14 +3,14 @@
 #define TimeoutOccured              (PIR1bits.TMR1IF)
 #define RECEIVE_TIMEOUT             10000 //10 milliseconds
 
-void USART_Init(const uint8_t baudcon_val, const uint8_t rcsta_val, const uint8_t txsta_val, const uint16_t spbrg_val)
+void USART_Init(const uint8_t BaudconVal, const uint8_t RcstaVal, const uint8_t TxstaVal, const uint16_t SpbrgVal)
 {
-    BAUDCON = baudcon_val;
-    SPBRGL = (uint8_t)(0x00FF & spbrg_val);
-    SPBRGH = (uint8_t)(spbrg_val >> 8);
+    BAUDCON = BaudconVal;
+    SPBRGL = (uint8_t)(0x00FF & SpbrgVal);
+    SPBRGH = (uint8_t)(SpbrgVal >> 8);
     
-    RCSTA = rcsta_val;
-    TXSTA = txsta_val;   
+    RCSTA = RcstaVal;
+    TXSTA = TxstaVal;   
 }
 
 void SetTimeout(uint16_t Period)
@@ -29,20 +29,20 @@ void RemoveTimeout()
     T1CONbits.TMR1ON = 0x00; //Switch Off Timer1
 }
 
-void USART_Putch(const uint8_t _char)
+void USART_Putch(const uint8_t _Char)
 {
     while(USART_TxBufferFull){;} //wait for TXREG to empty
-    TXREG = _char;
+    TXREG = _Char;
     while(USART_TxBusy){;} //wait for TSR to empty
 }
 
-void USART_Puts(const uint8_t *data_ptr, uint8_t length)
+void USART_Puts(const uint8_t *DataPtr, uint8_t Length)
 {
-    uint8_t index;
-    for(index = 0; index < length; index++)
+    uint8_t Index;
+    for(Index = 0; Index < Length; Index++)
     {
         while(USART_TxBufferFull){;} //wait for TXREG to empty
-        TXREG = data_ptr[index];
+        TXREG = DataPtr[Index];
     }
     
     while(USART_TxBusy){;} //wait for TSR to empty
@@ -53,16 +53,17 @@ uint8_t USART_Getch()
     return RCREG;
 }
 
-bool USART_Gets(uint8_t *buffer_ptr, uint8_t length)
+bool USART_Gets(uint8_t *BufferPtr, uint8_t Length)
 {
-    uint8_t index;
-    for(index = 0; index < length; index++)
+    uint8_t Index;
+    for(Index = 0; Index < Length; Index++)
     {
         SetTimeout(RECEIVE_TIMEOUT);
         while(!USART_RxDataAvailable)
         {
             if(TimeoutOccured)
             {
+                RemoveTimeout();
                 return false;
             }
         }
@@ -76,22 +77,22 @@ bool USART_Gets(uint8_t *buffer_ptr, uint8_t length)
             return false;
         }
         
-        buffer_ptr[index] = RCREG;
+        BufferPtr[Index] = RCREG;
     }
     
     return true;
 }
 
-void USART_Write(const uint8_t *data_ptr, const char delim)
+void USART_Write(const uint8_t *DataPtr, const char delim)
 {
-    while(((char)*data_ptr) != delim)
+    while(((char)*DataPtr) != delim)
     {
         while(USART_TxBufferFull){;} //wait for TXREG to empty
-        TXREG = *data_ptr++;
+        TXREG = *DataPtr++;
     }
 }
 
-bool USART_Read(uint8_t *buffer_ptr, const char delim)
+bool USART_Read(uint8_t *BufferPtr, const char delim)
 {
     do
     {
@@ -100,6 +101,7 @@ bool USART_Read(uint8_t *buffer_ptr, const char delim)
         {
             if(TimeoutOccured)
             {
+                RemoveTimeout();
                 return false;
             }
         }   
@@ -114,8 +116,8 @@ bool USART_Read(uint8_t *buffer_ptr, const char delim)
             return false;
         }
         
-        *buffer_ptr = RCREG;
-    }while(delim != ((char)*buffer_ptr++));
+        *BufferPtr = RCREG;
+    }while(delim != ((char)*BufferPtr++));
     
     return true;
 }
