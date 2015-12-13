@@ -1,317 +1,210 @@
 #include "ir.h"
-#include "pwm.h"
+#include "pwm_ccp2.h"
 
-#define CLEAR                       0
-#define SET                         1
-#define PULSE_POSITION_ENCODING     0
-#define PULSE_LENGTH_ENCODING       1
-#define BI_PHASE_ENCODING           2
+#define PULSE_POSITION_ENCODING     0x00
+#define PULSE_LENGTH_ENCODING       0x01
+#define BI_PHASE_ENCODING           0x02
+#define ENCODING_TYPE_MASK          0x03
 
-void IR_encode_pulse_position();
-void IR_encode_pulse_length();
-void IR_encode_bi_phase();
+void IR_EncodePulsePosition();
+void IR_EncodePulseLength();
+void IR_EncodeBiPhase();
 
 //IR frame parameters
-uint8_t carrier;
-uint8_t flags;
-uint16_t pre_amble_on_period;
-uint16_t pre_amble_off_period;
-uint16_t mark_period;
-uint16_t space_period;
-uint16_t gap_period;
-uint16_t post_amble_period;
-uint8_t command_bit_length; // command length in bits
-uint8_t command_byte_length; // command length in bytes   
-uint8_t *command_ptr;
+uint8_t     Carrier;
+uint8_t     Flags;
+uint16_t    PreambleOnPeriod;
+uint16_t    PreambleOffPeriod;
+uint16_t    MarkPeriod;
+uint16_t    SpacePeriod;
+uint16_t    GapPeriod;
+uint16_t    PostamblePeriod;
+uint8_t     CommandBitLength; // command length in bits
+uint8_t     CommandByteLength; // command length in bytes   
+uint8_t     *CommandPtr;
 
 //Custom delay method necessary as MPLab-X built-in delay function requires constant parameters/arguments
-void IR_delay(uint16_t period)
+void IR_Delay(uint16_t Period)
 {
-    period = period << 2; // multiply period by 4 since one instruction is 1/4 micro second
-    CCPR1H = period >> 8; //Mask high byte
-    CCPR1L = period & 0x00FF; // Mask low byte
-    TMR1 = CLEAR; //Reset timer 1
-    CCP1IF = CLEAR; //Clear timer1 interrupt flag
+    T1CONbits.TMR1ON = 0x01; //Switch On Timer1 
+    
+    Period = Period << 2; // multiply period by 4 since one instruction is 1/4 micro second @ 16MHz
+    CCPR1H = Period >> 8; //Mask high byte
+    CCPR1L = Period & 0x00FF; // Mask low byte
+    TMR1 = 0; //Reset timer 1
+    CCP1IF = 0; //Clear timer1 interrupt flag
     
     do
     {
         //do nothing until timer matches compare value i.e. specified period elapses 
     }while(CCP1IF == 0);
+    
+    T1CONbits.TMR1ON = 0x00; //Switch Off Timer1
 }
 
-void IR_init(uint8_t IR_freq)
+void IR_Init(uint8_t DutyCycle, uint8_t Freq)
 {
-    IR_set_carrier(IR_freq);
-    T1CON = 0x01; //Configure Timer1
-    CCP1CON = 0x08; //Configure Timer1   
+    uint16_t ccpr2l_dc2b_val = (Freq) << DutyCycle; //[PR] * 1 (for DC = 1/4) and [PR] * 2 (for DC = 1/2) - approximation 
+    PWM_CCP2Init(ccpr2l_dc2b_val, Freq);
 }
 
-//PWM frequency configuration values based on 16MHz oscillator
-void IR_set_carrier(uint8_t IR_freq)
-{ 
-    if (IR_freq == IR_FREQ_30_0)
-    {
-        PWM_Init(132, 1, 266);
-    }
-    else if (IR_freq == IR_FREQ_30_5)
-    {
-        PWM_Init(130, 1, 262);
-    } 
-    else if (IR_freq == IR_FREQ_31_0)
-    {
-        PWM_Init(128, 1, 258);
-    }
-    else if (IR_freq == IR_FREQ_31_5)
-    {
-        PWM_Init(126, 1, 254);
-    }
-    else if (IR_freq == IR_FREQ_32_0)
-    {
-        PWM_Init(124, 1, 250);
-    }
-    else if (IR_freq == IR_FREQ_32_5)
-    {
-        PWM_Init(122, 1, 246);
-    }
-    else if (IR_freq == IR_FREQ_33_0)
-    {
-        PWM_Init(120, 1, 242);
-    }
-    else if (IR_freq == IR_FREQ_33_5)
-    {
-        PWM_Init(118, 1, 238);
-    }
-    else if (IR_freq == IR_FREQ_34_0)
-    {
-        PWM_Init(116, 1, 234);
-    }
-    else if (IR_freq == IR_FREQ_34_5)
-    {
-        PWM_Init(114, 1, 230);
-    }
-    else if (IR_freq == IR_FREQ_35_0)
-    {
-        PWM_Init(113, 1, 228);
-    }
-    else if (IR_freq == IR_FREQ_35_5)
-    {
-        PWM_Init(111, 1, 224);
-    }
-    else if (IR_freq == IR_FREQ_36_0)
-    {
-        PWM_Init(110, 1, 222);
-    }
-    else if (IR_freq == IR_FREQ_36_5)
-    {
-        PWM_Init(108, 1, 218);
-    }
-    else if (IR_freq == IR_FREQ_37_0)
-    {
-        PWM_Init(107, 1, 216);
-    }
-    else if (IR_freq == IR_FREQ_37_5)
-    {
-        PWM_Init(105, 1, 212);
-    }
-    else if (IR_freq == IR_FREQ_38_0)
-    {
-        PWM_Init(104, 1, 210);
-    }
-    else if (IR_freq == IR_FREQ_38_5)
-    {
-        PWM_Init(102, 1, 206);
-    }
-    else if (IR_freq == IR_FREQ_39_0)
-    {
-        PWM_Init(101, 1, 204);
-    }
-    else if (IR_freq == IR_FREQ_39_5)
-    {
-        PWM_Init(100, 1, 202);
-    }
-    else if (IR_freq == IR_FREQ_40_0)
-    {
-        PWM_Init(99, 1, 200);
-    }
-    else if (IR_freq == IR_FREQ_40_5)
-    {
-        PWM_Init(97, 1, 196);
-    }
-    else if (IR_freq == IR_FREQ_41_0)
-    {
-        PWM_Init(96, 1, 194);
-    }
-    else if (IR_freq == IR_FREQ_41_5)
-    {
-        PWM_Init(95, 1, 192);
-    }
-    else if (IR_freq == IR_FREQ_42_0)
-    {
-        PWM_Init(94, 1, 190);
-    }
-    else if (IR_freq == IR_FREQ_42_5)
-    {
-        PWM_Init(93, 1, 188);
-    }
-}
-
-void IR_send_command(uint8_t *command_frame_ptr)
+void IR_send_command(uint8_t *CommandFramePtr, uint8_t DutyCycle)
 {
     //Set IR frame command parameters
-    carrier=command_frame_ptr[1];
-    flags = command_frame_ptr[2];
-    pre_amble_on_period = ((uint16_t)command_frame_ptr[3] & 0x00FF) + ((uint16_t)command_frame_ptr[4] << 8);
-    pre_amble_off_period = ((uint16_t)command_frame_ptr[5] & 0x00FF) + ((uint16_t)command_frame_ptr[6] << 8);
-    mark_period = ((uint16_t)command_frame_ptr[7] & 0x00FF) + ((uint16_t)command_frame_ptr[8] << 8);
-    space_period = ((uint16_t)command_frame_ptr[9] & 0x00FF) + ((uint16_t)command_frame_ptr[10] << 8);
-    gap_period = ((uint16_t)command_frame_ptr[11] & 0x00FF) + ((uint16_t)command_frame_ptr[12] << 8);
-    post_amble_period = ((uint16_t)command_frame_ptr[13] & 0x00FF) + ((uint16_t)command_frame_ptr[14] << 8);
-    command_bit_length = command_frame_ptr[15];
-    command_byte_length = (command_bit_length >> 3); //Divide bit length by eight to obtain byte length
-    command_ptr = &command_frame_ptr[16]; //Pointer to actual command data
+    Carrier = CommandFramePtr[1];
+    Flags = CommandFramePtr[2];
+    PreambleOnPeriod = ((uint16_t)CommandFramePtr[3] & 0x00FF) + ((uint16_t)CommandFramePtr[4] << 8);
+    PreambleOffPeriod = ((uint16_t)CommandFramePtr[5] & 0x00FF) + ((uint16_t)CommandFramePtr[6] << 8);
+    MarkPeriod = ((uint16_t)CommandFramePtr[7] & 0x00FF) + ((uint16_t)CommandFramePtr[8] << 8);
+    SpacePeriod = ((uint16_t)CommandFramePtr[9] & 0x00FF) + ((uint16_t)CommandFramePtr[10] << 8);
+    GapPeriod = ((uint16_t)CommandFramePtr[11] & 0x00FF) + ((uint16_t)CommandFramePtr[12] << 8);
+    PostamblePeriod = ((uint16_t)CommandFramePtr[13] & 0x00FF) + ((uint16_t)CommandFramePtr[14] << 8);
+    CommandBitLength = CommandFramePtr[15];
+    CommandByteLength = (CommandBitLength >> 3); //Divide bit length by eight to obtain byte length
+    CommandPtr = &CommandFramePtr[16]; //Pointer to actual command data
      
-    IR_set_carrier(carrier); //Configure carrier frequency before sending command
+    IR_Init(DutyCycle,Carrier); //Configure carrier frequency before sending command
     
-    uint8_t IR_encoding = flags && 0x03; //Mask encoding type from flags byte
+    uint8_t EncodingType = Flags && ENCODING_TYPE_MASK; //Mask encoding type from flags byte
        
     //Transmit command
-    if (IR_encoding == PULSE_POSITION_ENCODING)
+    if (EncodingType == PULSE_POSITION_ENCODING)
     {        
-        IR_encode_pulse_position();
-    }else if (IR_encoding == PULSE_LENGTH_ENCODING)
+        IR_EncodePulsePosition();
+    }else if (EncodingType == PULSE_LENGTH_ENCODING)
     {
-        IR_encode_pulse_length();
-    }else if (IR_encoding == BI_PHASE_ENCODING)
+        IR_EncodePulseLength();
+    }else if (EncodingType == BI_PHASE_ENCODING)
     {
-        IR_encode_bi_phase();
+        IR_EncodeBiPhase();
     }
 }    
 
-void IR_encode_pulse_position()
+void IR_EncodePulsePosition()
 {
     //Transmit Preamble
-    PWM_Start();
-    IR_delay(pre_amble_on_period);
-    PWM_Stop();
-    IR_delay(pre_amble_off_period);
+    PWM_CCP2Start();
+    IR_Delay(PreambleOnPeriod);
+    PWM_CCP2Stop();
+    IR_Delay(PreambleOffPeriod);
     
     //Transmit IR Frame
-    for(uint8_t command_byte=0; command_byte < command_byte_length; command_byte++)
+    for(uint8_t CommandByte = 0; CommandByte < CommandByteLength; CommandByte++)
     {
         for (uint8_t command_bit=0; command_bit < 8; command_bit++) //Iterate 8 times since there are 8 bits in a byte  
         {
-            if(command_bit_length == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
+            if(CommandBitLength == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
             //Transmit bit values Starting from the least significant bit of each byte
-            uint8_t bit_val = (command_ptr[command_byte]) >> command_bit & 0x01;
+            uint8_t BitValue = (CommandPtr[CommandByte]) >> command_bit & 0x01;
 
-            if (bit_val == SET) //If bit equals 1
+            if (BitValue == 1) //If bit equals 1
             {
-                PWM_Start();
-                IR_delay(gap_period);
-                PWM_Stop();
-                IR_delay(mark_period);
-                command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
-            }else if(bit_val == CLEAR) //If bit equals 0
+                PWM_CCP2Start();
+                IR_Delay(GapPeriod);
+                PWM_CCP2Stop();
+                IR_Delay(MarkPeriod);
+                CommandBitLength = CommandBitLength - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
+            }else if(BitValue == 0) //If bit equals 0
             {
-                PWM_Start();
-                IR_delay(gap_period);
-                PWM_Stop();
-                IR_delay(space_period);
-                command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
+                PWM_CCP2Start();
+                IR_Delay(GapPeriod);
+                PWM_CCP2Stop();
+                IR_Delay(SpacePeriod);
+                CommandBitLength = CommandBitLength - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }   
         }
     }
         
     //Transmit Post-amble
-    PWM_Start();
-    IR_delay(post_amble_period);
-    PWM_Stop();
-    IR_delay(gap_period);
+    PWM_CCP2Start();
+    IR_Delay(PostamblePeriod);
+    PWM_CCP2Stop();
+    IR_Delay(GapPeriod);
 }
 
-void IR_encode_pulse_length()
+void IR_EncodePulseLength()
 {
     //Transmit Preamble
-    PWM_Start();
-    IR_delay(pre_amble_on_period);
-    PWM_Stop();
-    IR_delay(pre_amble_off_period);
+    PWM_CCP2Start();
+    IR_Delay(PreambleOnPeriod);
+    PWM_CCP2Stop();
+    IR_Delay(PreambleOffPeriod);
     
     //Transmit IR Frame
-    for(uint8_t command_byte=0; command_byte < command_byte_length; command_byte++)
+    for(uint8_t CommandByte=0; CommandByte < CommandByteLength; CommandByte++)
     {
         for (uint8_t command_bit=0; command_bit < 8; command_bit++) //Iterate 8 times since there are 8 bits in a byte  
         {
-            if(command_bit_length == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
+            if(CommandBitLength == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
             //Transmit bit values Starting from the least significant bit of each byte
-            uint8_t bit_val = (command_ptr[command_byte]) >> command_bit & 0x01;
+            uint8_t BitValue = (CommandPtr[CommandByte]) >> command_bit & 0x01;
 
-            if (bit_val == SET) //If bit equals 1
+            if (BitValue == 1) //If bit equals 1
             {
-                PWM_Start();
-                IR_delay(mark_period);
-                PWM_Stop();
-                IR_delay(gap_period);
-                command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
-            }else if (bit_val == CLEAR) //If bit equals 0
+                PWM_CCP2Start();
+                IR_Delay(MarkPeriod);
+                PWM_CCP2Stop();
+                IR_Delay(GapPeriod);
+                CommandBitLength = CommandBitLength - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
+            }else if (BitValue == 0) //If bit equals 0
             {
-                PWM_Start();
-                IR_delay(space_period);
-                PWM_Stop();
-                IR_delay(gap_period);
-                command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
+                PWM_CCP2Start();
+                IR_Delay(SpacePeriod);
+                PWM_CCP2Stop();
+                IR_Delay(GapPeriod);
+                CommandBitLength = CommandBitLength - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }   
         }
     }
         
     //Transmit Post-amble
-    PWM_Start();
-    IR_delay(post_amble_period);
-    PWM_Stop();
-    IR_delay(gap_period);
+    PWM_CCP2Start();
+    IR_Delay(PostamblePeriod);
+    PWM_CCP2Stop();
+    IR_Delay(GapPeriod);
 }
 
-void IR_encode_bi_phase()
+void IR_EncodeBiPhase()
 {
     //Transmit Preamble
-    PWM_Start();
-    IR_delay(pre_amble_on_period);
-    PWM_Stop();
-    IR_delay(pre_amble_off_period);
+    PWM_CCP2Start();
+    IR_Delay(PreambleOnPeriod);
+    PWM_CCP2Stop();
+    IR_Delay(PreambleOffPeriod);
    
     //Transmit IR Frame
-    for(uint8_t command_byte=0; command_byte < command_byte_length; command_byte++)
+    for(uint8_t CommandByte=0; CommandByte < CommandByteLength; CommandByte++)
     {
         for (uint8_t command_bit=0; command_bit < 8; command_bit++) //Iterate 8 times since there are 8 bits in a byte  
         {
-            if(command_bit_length == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
+            if(CommandBitLength == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
             //Transmit bit values Starting from the least significant bit of each byte
-            uint8_t bit_val = (command_ptr[command_byte]) >> command_bit & 0x01;
+            uint8_t BitValue = (CommandPtr[CommandByte]) >> command_bit & 0x01;
 
-            if (bit_val == SET) //If bit equals 1
+            if (BitValue == 1) //If bit equals 1
             {
-                PWM_Stop();
-                IR_delay(mark_period);
-                PWM_Start();
-                IR_delay(mark_period);
-                command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
-            }else if (bit_val == CLEAR) //If bit equals 0
+                PWM_CCP2Stop();
+                IR_Delay(MarkPeriod);
+                PWM_CCP2Start();
+                IR_Delay(MarkPeriod);
+                CommandBitLength = CommandBitLength - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
+            }else if (BitValue == 0) //If bit equals 0
             {
-                PWM_Start();
-                IR_delay(space_period);
-                PWM_Stop();
-                IR_delay(space_period);
-                command_bit_length = command_bit_length - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
+                PWM_CCP2Start();
+                IR_Delay(SpacePeriod);
+                PWM_CCP2Stop();
+                IR_Delay(SpacePeriod);
+                CommandBitLength = CommandBitLength - 1; //Keep a count of bits in case they do not align to byte boundaries e.g. 14 bits
             }   
         }
     }
     
     //Transmit Post-amble
-    PWM_Start();
-    IR_delay(post_amble_period);
-    PWM_Stop();
-    IR_delay(gap_period);
+    PWM_CCP2Start();
+    IR_Delay(PostamblePeriod);
+    PWM_CCP2Stop();
+    IR_Delay(GapPeriod);
 }

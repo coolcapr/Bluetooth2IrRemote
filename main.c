@@ -1,6 +1,6 @@
 #include "sys.h"
 #include "ir.h"
-#include "pwm.h"
+#include "pwm_ccp2.h"
 #include "usart.h"
 
 // #pragma config statements should precede project file includes.
@@ -24,11 +24,11 @@
 #pragma config BORV = LO        // Brown-out Reset Voltage Selection (Brown-out Reset Voltage (Vbor), low trip point selected.)
 #pragma config LVP = ON         // Low-Voltage Programming Enable (Low-voltage programming enabled)
 
-#define BAUDCON_VAL         (USART_BAUDCON_DEFAULT)
-#define RCSTA_VAL           (USART_SERIAL_PORT_ENABLE | USART_CONT_RX_ENABLE)
-#define TXSTA_VAL           (USART_TX_ENABLE | USART_HIGH_BAUDRATE)
-#define SPBRG_VAL           51 //baudrate: 19200bps
-#define IR_BUFFER_SIZE      20 
+#define BAUDCON_VAL                     (USART_BAUDCON_DEFAULT)
+#define RCSTA_VAL                       (USART_SERIAL_PORT_ENABLE | USART_CONT_RX_ENABLE)
+#define TXSTA_VAL                       (USART_TX_ENABLE | USART_HIGH_BAUDRATE)
+#define SPBRG_VAL                       51 //baudrate: 19200bps
+#define COMMAND_BUFFER_SIZE             20 
 
 void main(void)
 {
@@ -39,13 +39,15 @@ void main(void)
     USART_Init(BAUDCON_VAL, RCSTA_VAL, TXSTA_VAL, SPBRG_VAL);
     
     //Initialize IR Transmitter
-    IR_init(IR_FREQ_30_0);    
+    IR_Init(IR_DUTY_CYCLE_QUATER, IR_FREQ_38);    
     
-    uint8_t IR_command_buffer[IR_BUFFER_SIZE]; // command buffer, 20 byte long
+    uint8_t CommandBuffer[COMMAND_BUFFER_SIZE]; // command buffer, 20 byte long
     
     //Command receive loop
     while(1)
-    {        
+    {  
+        
+        
         
     }
 }
