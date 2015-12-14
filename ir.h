@@ -30,6 +30,6 @@
 #define IR_DUTY_CYCLE_HALF          1
 
 void IR_Init(uint8_t DutyCycle, uint8_t Freq);
-void IR_SendCommand(uint8_t *command);
+void IR_SendCommand(uint8_t *CommandFramePtr, uint8_t DutyCycle);
 
 #endif	/* IR_H */

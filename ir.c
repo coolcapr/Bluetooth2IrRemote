@@ -1,5 +1,5 @@
 #include "ir.h"
-#include "pwm_ccp2.h"
+#include "pwm.h"
 
 #define PULSE_POSITION_ENCODING     0x00
 #define PULSE_LENGTH_ENCODING       0x01
@@ -91,12 +91,12 @@ void IR_EncodePulsePosition()
     //Transmit IR Frame
     for(uint8_t CommandByte = 0; CommandByte < CommandByteLength; CommandByte++)
     {
-        for (uint8_t command_bit=0; command_bit < 8; command_bit++) //Iterate 8 times since there are 8 bits in a byte  
+        for (uint8_t CommandBit=0; CommandBit < 8; CommandBit++) //Iterate 8 times since there are 8 bits in a byte  
         {
             if(CommandBitLength == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
             //Transmit bit values Starting from the least significant bit of each byte
-            uint8_t BitValue = (CommandPtr[CommandByte]) >> command_bit & 0x01;
+            uint8_t BitValue = (CommandPtr[CommandByte]) >> CommandBit & 0x01;
 
             if (BitValue == 1) //If bit equals 1
             {
@@ -134,12 +134,12 @@ void IR_EncodePulseLength()
     //Transmit IR Frame
     for(uint8_t CommandByte=0; CommandByte < CommandByteLength; CommandByte++)
     {
-        for (uint8_t command_bit=0; command_bit < 8; command_bit++) //Iterate 8 times since there are 8 bits in a byte  
+        for (uint8_t CommandBit=0; CommandBit < 8; CommandBit++) //Iterate 8 times since there are 8 bits in a byte  
         {
             if(CommandBitLength == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
             //Transmit bit values Starting from the least significant bit of each byte
-            uint8_t BitValue = (CommandPtr[CommandByte]) >> command_bit & 0x01;
+            uint8_t BitValue = (CommandPtr[CommandByte]) >> CommandBit & 0x01;
 
             if (BitValue == 1) //If bit equals 1
             {
@@ -177,12 +177,12 @@ void IR_EncodeBiPhase()
     //Transmit IR Frame
     for(uint8_t CommandByte=0; CommandByte < CommandByteLength; CommandByte++)
     {
-        for (uint8_t command_bit=0; command_bit < 8; command_bit++) //Iterate 8 times since there are 8 bits in a byte  
+        for (uint8_t CommandBit=0; CommandBit < 8; CommandBit++) //Iterate 8 times since there are 8 bits in a byte  
         {
             if(CommandBitLength == 0){break;} //This is necessary if the numbers of bits do not match to byte boundaries eg. 14 bits
 
             //Transmit bit values Starting from the least significant bit of each byte
-            uint8_t BitValue = (CommandPtr[CommandByte]) >> command_bit & 0x01;
+            uint8_t BitValue = (CommandPtr[CommandByte]) >> CommandBit & 0x01;
 
             if (BitValue == 1) //If bit equals 1
             {

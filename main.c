@@ -1,6 +1,6 @@
 #include "sys.h"
 #include "ir.h"
-#include "pwm_ccp2.h"
+#include "pwm.h"
 #include "usart.h"
 
 // #pragma config statements should precede project file includes.
