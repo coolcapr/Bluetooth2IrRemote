@@ -11,6 +11,8 @@ void USART_Init(const uint8_t BaudconVal, const uint8_t RcstaVal, const uint8_t 
     
     RCSTA = RcstaVal;
     TXSTA = TxstaVal;   
+    
+    //uhjkjls
 }
 
 void SetTimeout(uint16_t Period)
